@@ -153,8 +153,8 @@ static dispatch_queue_t __imageCacheDispatchQueue = NULL;
     BOOL imageExists = NO;
     
     FICImageTable *imageTable = [_imageTables objectForKey:formatName];
-    NSString *entityUUID = [entity UUID];
-    NSString *sourceImageUUID = [entity sourceImageUUID];
+    NSUUID *entityUUID = [entity UUID];
+    NSUUID *sourceImageUUID = [entity sourceImageUUID];
     
     if (loadSynchronously == NO && [imageTable entryExistsForEntityUUID:entityUUID sourceImageUUID:sourceImageUUID]) {
         imageExists = YES;
@@ -233,7 +233,7 @@ static dispatch_queue_t __imageCacheDispatchQueue = NULL;
 }
 
 static void _FICAddCompletionBlockForEntity(NSString *formatName, NSMutableDictionary *entityRequestsDictionary, id <FICEntity> entity, FICImageCacheCompletionBlock completionBlock) {
-    NSString *entityUUID = [entity UUID];
+    NSUUID *entityUUID = [entity UUID];
     NSMutableDictionary *requestDictionary = [entityRequestsDictionary objectForKey:entityUUID];
     NSMutableDictionary *completionBlocks = nil;
     
@@ -274,7 +274,7 @@ static void _FICAddCompletionBlockForEntity(NSString *formatName, NSMutableDicti
             completionBlocksDictionary = [NSDictionary dictionaryWithObject:[NSArray arrayWithObject:[completionBlock copy]] forKey:formatName];
         }
         
-        NSString *entityUUID = [entity UUID];
+        NSUUID *entityUUID = [entity UUID];
         FICImageTable *imageTable = [_imageTables objectForKey:formatName];
         [imageTable deleteEntryForEntityUUID:entityUUID];
         
@@ -284,30 +284,30 @@ static void _FICAddCompletionBlockForEntity(NSString *formatName, NSMutableDicti
 
 - (void)_processImage:(UIImage *)image forEntity:(id <FICEntity>)entity withFormatName:(NSString *)formatName completionBlocksDictionary:(NSDictionary *)completionBlocksDictionary {
     dispatch_async(__imageCacheDispatchQueue, ^{
-        FICImageFormat *imageFormat = [_formats objectForKey:formatName];
-        NSString *formatFamily = [imageFormat family];
-        NSString *entityUUID = [entity UUID];
-        NSString *sourceImageUUID = [entity sourceImageUUID];
-        
-        if (formatFamily != nil) {
-            BOOL shouldProcessAllFormatsInFamily = YES;
-            if (_delegateImplementsShouldProcessAllFormatsInFamilyForEntity) {
-                shouldProcessAllFormatsInFamily = [_delegate imageCache:self shouldProcessAllFormatsInFamily:formatFamily forEntity:entity];
-            }
-            // All of the formats in a given family use the same source asset, so once we have that source asset, we can generate all of the family's formats.
-            for (FICImageTable *table in [_imageTables allValues]) {
-                FICImageFormat *imageFormat = [table imageFormat];
-                NSString *tableFormatFamily = [imageFormat family];
-                if ([formatFamily isEqualToString:tableFormatFamily]) {
-                    NSArray *completionBlocks = [completionBlocksDictionary objectForKey:[imageFormat name]];
-                    
-                    BOOL imageExistsForEntity = [table entryExistsForEntityUUID:entityUUID sourceImageUUID:sourceImageUUID];
-                    BOOL shouldProcessFamilyFormat = shouldProcessAllFormatsInFamily && imageExistsForEntity == NO;
-                    if (shouldProcessFamilyFormat || [completionBlocks count] > 0) {
-                        [self _processImage:image forEntity:entity imageTable:table completionBlocks:completionBlocks];
-                    }
-                }
-            }
+		FICImageFormat *imageFormat = [_formats objectForKey:formatName];
+		NSString *formatFamily = [imageFormat family];
+		NSUUID *entityUUID = [entity UUID];
+		NSUUID *sourceImageUUID = [entity sourceImageUUID];
+		
+		if (formatFamily != nil) {
+			BOOL shouldProcessAllFormatsInFamily = YES;
+			if (_delegateImplementsShouldProcessAllFormatsInFamilyForEntity) {
+				shouldProcessAllFormatsInFamily = [_delegate imageCache:self shouldProcessAllFormatsInFamily:formatFamily forEntity:entity];
+			}
+			// All of the formats in a given family use the same source asset, so once we have that source asset, we can generate all of the family's formats.
+			for (FICImageTable *table in [_imageTables allValues]) {
+				FICImageFormat *imageFormat = [table imageFormat];
+				NSString *tableFormatFamily = [imageFormat family];
+				if ([formatFamily isEqualToString:tableFormatFamily]) {
+					NSArray *completionBlocks = [completionBlocksDictionary objectForKey:[imageFormat name]];
+					
+					BOOL imageExistsForEntity = [table entryExistsForEntityUUID:entityUUID sourceImageUUID:sourceImageUUID];
+					BOOL shouldProcessFamilyFormat = shouldProcessAllFormatsInFamily && imageExistsForEntity == NO;
+					if (shouldProcessFamilyFormat || [completionBlocks count] > 0) {
+						[self _processImage:image forEntity:entity imageTable:table completionBlocks:completionBlocks];
+					}
+				}
+			}
         } else {
             FICImageTable *imageTable = [_imageTables objectForKey:formatName];
             NSArray *completionBlocks = [completionBlocksDictionary objectForKey:formatName];
@@ -328,8 +328,8 @@ static void _FICAddCompletionBlockForEntity(NSString *formatName, NSMutableDicti
             return;
         }
         
-        NSString *entityUUID = [entity UUID];
-        NSString *sourceImageUUID = [entity sourceImageUUID];
+        NSUUID *entityUUID = [entity UUID];
+        NSUUID *sourceImageUUID = [entity sourceImageUUID];
         FICImageFormat *imageFormat = [imageTable imageFormat];
         NSString *imageFormatName = [imageFormat name];
         FICEntityImageDrawingBlock imageDrawingBlock = [entity drawingBlockForImage:image withFormatName:imageFormatName];
@@ -353,8 +353,8 @@ static void _FICAddCompletionBlockForEntity(NSString *formatName, NSMutableDicti
 
 - (BOOL)imageExistsForEntity:(id <FICEntity>)entity withFormatName:(NSString *)formatName {
     FICImageTable *imageTable = [_imageTables objectForKey:formatName];
-    NSString *entityUUID = [entity UUID];
-    NSString *sourceImageUUID = [entity sourceImageUUID];
+    NSUUID *entityUUID = [entity UUID];
+    NSUUID *sourceImageUUID = [entity sourceImageUUID];
     
     BOOL imageExists = [imageTable entryExistsForEntityUUID:entityUUID sourceImageUUID:sourceImageUUID];
     
@@ -365,7 +365,7 @@ static void _FICAddCompletionBlockForEntity(NSString *formatName, NSMutableDicti
 
 - (void)deleteImageForEntity:(id <FICEntity>)entity withFormatName:(NSString *)formatName {
     FICImageTable *imageTable = [_imageTables objectForKey:formatName];
-    NSString *entityUUID = [entity UUID];
+    NSUUID *entityUUID = [entity UUID];
     
     [imageTable deleteEntryForEntityUUID:entityUUID];
     [imageTable saveMetadata];
@@ -375,7 +375,7 @@ static void _FICAddCompletionBlockForEntity(NSString *formatName, NSMutableDicti
     NSURL *sourceImageURL = [entity sourceImageURLWithFormatName:formatName];
     NSMutableDictionary *requestDictionary = [_requests objectForKey:sourceImageURL];
     if (requestDictionary) {
-        NSString *entityUUID = [entity UUID];
+        NSUUID *entityUUID = [entity UUID];
         NSMutableDictionary *entityRequestsDictionary = [requestDictionary objectForKey:entityUUID];
         if (entityRequestsDictionary) {
             NSMutableDictionary *completionBlocksDictionary = [entityRequestsDictionary objectForKey:FICImageCacheCompletionBlocksKey];
